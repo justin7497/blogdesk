@@ -1,0 +1,40 @@
+---
+description: 쇼핑 쇼츠 메이커 확정 규칙. 자막·해상도·음성·배포를 바꿀 때 반드시 적용.
+alwaysApply: true
+---
+
+# 쇼츠 메이커 확정 규칙
+
+이미 합의된 출력 스펙이다. 다른 기능을 고치면서 이 값을 되돌리거나 지우지 마라. 추가 수정은 이 스펙 위에만 얹는다.
+
+## 출력
+
+- 해상도 **1080×1920** fill-crop. 레터박스·4K 업스케일 금지. 4K는 명시 요청이 있을 때만.
+- 인코딩은 libx264 `veryfast` + CRF **18** + High 프로파일 + `aq-mode=3` + scale `lanczos`. 속도 때문에 `superfast`/`fast_bilinear`로 낮추지 마라.
+- 음성 속도는 솔루션마다 화면에서 조절한다. ElevenLabs `speed`, 타입캐스트 `audio_tempo`. 기본 1.1배. ffmpeg `atempo`는 쓰지 마라.
+- 타입캐스트는 문장 단위 compose + 문장 사이 pause(훅 뒤 0.32초, 본문 0.28초) + smart/toneup. 최종 영상에는 나레이션만 넣는다. 원본 영상 소리는 섞지 마라. 보이스는 dynaudnorm+loudnorm(-14 LUFS)으로 크기를 맞춘다. 입모양 싱크는 하지 마라.
+- ElevenLabs 기본 보이스 Anna Kim, 테크·공구는 VIV. 타입캐스트 버튼은 키 없어도 **항상** 보여 준다. 추천 보이스는 **민주·필재**.
+- TTS를 바꾸면 `npm run verify:tts`를 실행한다. 배포 뒤에는 설정 화면의 타입캐스트 연결 확인 또는 `npm run verify:tts:live`로 민주·필재가 잡히는지 본다.
+
+## 자막 (`lib/shorts-captions.ts`)
+
+- Pretendard Bold. **한 줄**. 문장 단위 끊기.
+- 위치는 **중상단** Alignment 8, `\an8`, MarginV **640**. PlayRes+LayoutRes 1080×1920. ffmpeg `ass`에 `original_size=1080x1920`.
+- 훅·본문·CTA 모두 흰 글자 84 + 검정 외곽선 7. 페이드만. 단어별 색 변경은 요청 있을 때만.
+- 하단(Alignment 2)·정중앙(Alignment 5)으로 내리지 마라. MarginV 180 상단으로 되돌리지 마라.
+
+```
+// ❌ BAD — PlayRes 없이 붙이면 자막이 화면 한가운데로 간다
+ass='file.ass':fontsdir='fonts'
+
+// ✅ GOOD
+ass='file.ass':fontsdir='fonts':original_size=1080x1920
+```
+
+## 운영
+
+- 보관함은 `status === "done"` 완성 영상만 보여 준다. 업로드·대본·음성 중간 작업은 넣지 마라.
+- 영상은 GCS `blogdesk-ljh-shorts`에 persist. 실패를 삼키지 마라.
+- **배포는 사용자가 시킬 때만.**
+- 사이드바는 채널(쇼츠·인스타·페북)과 설정만 둔다. 작업·블로그·공통 자산 메뉴를 되돌리지 마라.
+- 쇼츠에 Remotion/lipsync/유튜브 **영상 파일** 다운로드를 붙이지 마라. 공개 자막·대본만 URL에서 가져올 수 있다.

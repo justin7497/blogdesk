@@ -1,0 +1,9 @@
+{
+  "name": "컨텐츠데스크",
+  "short_name": "컨텐츠데스크",
+  "start_url": "/instagram",
+  "display": "standalone",
+  "background_color": "#163224",
+  "theme_color": "#1b3a2a",
+  "lang": "ko"
+}
